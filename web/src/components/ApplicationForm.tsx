@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { positions, type Department } from "@/data/positions";
+import { submitApplication } from "@/app/actions";
 
 const departments: Department[] = ["Visualisation", "Creative", "Technology", "People & Operations", "Growth"];
 const MAX_RESUME_BYTES = 10 * 1024 * 1024;
@@ -67,15 +68,10 @@ export default function ApplicationForm({ prefill }: { prefill: Prefill }) {
       formData.append("profile", profile.trim());
       formData.append("resume", resume);
 
-      const response = await fetch("/api/apply", {
-        method: "POST",
-        body: formData,
-      });
+      const result = await submitApplication(formData);
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Failed to submit application. Please try again.");
+      if (!result.success) {
+        throw new Error(result.error || "Failed to submit application. Please try again.");
       }
 
       setSubmitted(true);
