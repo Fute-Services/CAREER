@@ -22,7 +22,7 @@ export default function Navbar({ onApplyClick }: { onApplyClick: () => void }) {
           <a href="#apply" className="transition-colors hover:text-neutral-950">Apply</a>
         </nav>
         <button type="button" onClick={onApplyClick} className="rounded-full bg-neutral-950 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.11em] text-white transition-colors hover:bg-[#b11c24]">
-          Join Fute now
+          Join Futé now
         </button>
       </div>
     </header>
