@@ -1,11 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { recordApplicationInExcel } from "@/lib/excel";
 import { sendApplicationEmail } from "@/lib/email";
 import { uploadResumeToGitHub } from "@/lib/github";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
 

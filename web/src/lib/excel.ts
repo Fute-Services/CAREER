@@ -16,7 +16,7 @@ export interface CandidateApplication {
   submittedAt?: string;
 }
 
-const DATA_DIR = path.join(process.cwd(), "data");
+const DATA_DIR = process.env.VERCEL ? path.join("/tmp", "data") : path.join(process.cwd(), "data");
 const EXCEL_FILE_PATH = path.join(DATA_DIR, "applications.xlsx");
 
 /**
