@@ -22,6 +22,7 @@ export default function ApplicationForm({ prefill }: { prefill: Prefill }) {
   const [resume, setResume] = useState<File | null>(null);
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -33,7 +34,7 @@ export default function ApplicationForm({ prefill }: { prefill: Prefill }) {
     if (nextRole) setDepartment(nextRole.department);
   }
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!name.trim() || !/^\S+@\S+\.\S+$/.test(email) || !phone.trim() || !location.trim() || !department || !profile.trim()) {
       setError("Please complete all required fields.");
@@ -51,8 +52,39 @@ export default function ApplicationForm({ prefill }: { prefill: Prefill }) {
       setError("Please confirm the recruitment privacy notice.");
       return;
     }
-    setError("");
-    setSubmitted(true);
+
+    try {
+      setError("");
+      setIsSubmitting(true);
+
+      const formData = new FormData();
+      formData.append("name", name.trim());
+      formData.append("email", email.trim());
+      formData.append("phone", phone.trim());
+      formData.append("location", location.trim());
+      formData.append("department", department);
+      formData.append("role", selectedRole ? selectedRole.title : "General Application");
+      formData.append("profile", profile.trim());
+      formData.append("resume", resume);
+
+      const response = await fetch("/api/apply", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Failed to submit application. Please try again.");
+      }
+
+      setSubmitted(true);
+    } catch (err: any) {
+      console.error("Application submission error:", err);
+      setError(err.message || "Something went wrong. Please check your details and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   if (submitted) {
@@ -238,7 +270,25 @@ export default function ApplicationForm({ prefill }: { prefill: Prefill }) {
             <span>I confirm that the information provided is accurate and consent to Futé Services using it for recruitment purposes.</span>
           </label>
           {error && <p className="mt-4 rounded-lg bg-white/95 px-3.5 py-2 text-sm font-semibold text-[#800913]">{error}</p>}
-          <button type="submit" className="mt-7 inline-flex items-center justify-center rounded-xl bg-white px-7 py-3.5 text-xs font-bold uppercase tracking-[0.13em] text-[#800913] shadow-md transition-all hover:bg-neutral-100 hover:shadow-lg">Submit application <span className="ml-3 text-base leading-none">→</span></button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="mt-7 inline-flex items-center justify-center rounded-xl bg-white px-7 py-3.5 text-xs font-bold uppercase tracking-[0.13em] text-[#800913] shadow-md transition-all hover:bg-neutral-100 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSubmitting ? (
+              <>
+                <svg className="mr-2 h-4 w-4 animate-spin text-[#800913]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Submitting application...
+              </>
+            ) : (
+              <>
+                Submit application <span className="ml-3 text-base leading-none">→</span>
+              </>
+            )}
+          </button>
           <p className="mt-5 text-xs text-white/60">Your details are used only for recruitment and candidate evaluation.</p>
         </form>
       </div>
