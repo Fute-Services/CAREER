@@ -12,6 +12,7 @@ export interface CandidateApplication {
   profile: string;
   resumeFileName: string;
   resumeFileSizeKB: number;
+  resumeFileUrl?: string;
   submittedAt?: string;
 }
 
@@ -40,6 +41,7 @@ export async function recordApplicationInExcel(data: CandidateApplication): Prom
       "Work Profile / Summary": data.profile,
       "Resume File Name": data.resumeFileName,
       "Resume Size (KB)": data.resumeFileSizeKB,
+      "Resume GitHub Link": data.resumeFileUrl || "Attached in Email",
     };
 
     let workbook: XLSX.WorkBook;

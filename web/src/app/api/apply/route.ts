@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { recordApplicationInExcel } from "@/lib/excel";
 import { sendApplicationEmail } from "@/lib/email";
+import { uploadResumeToGitHub } from "@/lib/github";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,14 @@ export async function POST(request: Request) {
     const resumeBuffer = Buffer.from(resumeArrayBuffer);
     const resumeFileSizeKB = Math.round(resumeBuffer.length / 1024);
 
-    // 1. Record application to Excel (data/applications.xlsx) and optional Google Sheet webhook
+    // 1. Upload Resume directly to GitHub Repository (or local fallback)
+    const uploadResult = await uploadResumeToGitHub({
+      candidateName: name,
+      fileName: resumeFile.name,
+      fileBuffer: resumeBuffer,
+    });
+
+    // 2. Record application to Excel (data/applications.xlsx) and optional Google Sheet webhook
     await recordApplicationInExcel({
       name,
       email,
@@ -46,9 +54,10 @@ export async function POST(request: Request) {
       profile,
       resumeFileName: resumeFile.name,
       resumeFileSizeKB,
+      resumeFileUrl: uploadResult.fileUrl,
     });
 
-    // 2. Send email notification to HR with the resume attached
+    // 3. Send email notification to HR with the resume attached
     await sendApplicationEmail({
       name,
       email,
